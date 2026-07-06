@@ -14,8 +14,9 @@ export type Section = {
   id: string; // "1".."8" — used in the /workbook/[sectionId] route
   index: string; // display index, e.g. "01"
   title: string;
-  deferred?: boolean; // true = locked until a later milestone
-  deferredNote?: string;
+  /** Section 7: question 7.1 is answered by starring in the Library,
+      not by a textarea. 7.2/7.3 stay free text. */
+  ingredients?: boolean;
   questions: Question[];
 };
 
@@ -159,13 +160,12 @@ export const SECTIONS: Section[] = [
     id: "7",
     index: "07",
     title: "Ingredients",
-    deferred: true,
-    deferredNote:
-      "Answered in the Library view — star 4–8 systems, one line each on what they contribute, then force-pair two from different families. Arrives with M2.",
+    ingredients: true,
     questions: [
       {
         id: "7.1",
         prompt: "Star 4–8 systems from the Library.",
+        helpText: "Answered by starring in the Library view, not here.",
       },
       {
         id: "7.2",
@@ -203,9 +203,11 @@ export function getSection(id: string): Section | undefined {
   return SECTIONS.find((s) => s.id === id);
 }
 
-/** Question ids that count toward progress (deferred sections excluded). */
+/** Question ids answerable by free text ("7.1" is answered by starring). */
 export function activeQuestionIds(sectionId?: string): string[] {
   return SECTIONS.filter(
-    (s) => !s.deferred && (sectionId === undefined || s.id === sectionId),
-  ).flatMap((s) => s.questions.map((q) => q.id));
+    (s) => sectionId === undefined || s.id === sectionId,
+  ).flatMap((s) =>
+    s.questions.filter((q) => q.id !== "7.1").map((q) => q.id),
+  );
 }

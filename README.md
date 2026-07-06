@@ -12,10 +12,19 @@ the Lab generates **structures**, never scenes.
 
 ## Status
 
-**M1 — Skeleton** (this build): Gate, Workbook with per-question
-autosave, seeded question bank, per-section progress.
+All four milestones are built:
 
-Coming: M2 Compare + Library, M3 Lab synthesis runs, M4 Export.
+- **M1 — Skeleton**: Gate, Workbook with per-question autosave, seeded
+  question bank, per-section progress.
+- **M2 — Two-player**: Compare view (divergence rendered in the one
+  signal color), Library of 30 catalogued systems with starring;
+  Section 7 answers via stars.
+- **M3 — The Lab**: synthesis runs against the Anthropic API (prompt
+  template in `prompts/synthesis.txt` — edit it freely), candidate
+  cards with keep/kill/mutate votes and notes, mutation notes feed the
+  next run, full run history preserved.
+- **M4 — Export**: one-click markdown dump of answers, stars, runs,
+  votes. Copy or download.
 
 ## Stack
 
@@ -38,16 +47,23 @@ Visit `/gate`, pick your name, enter the passphrase.
 
 1. Create a Vercel Postgres (Neon) database; set `DATABASE_URL` to the
    pooled connection string.
-2. Set `GATE_PASSPHRASE` and `SESSION_SECRET` env vars.
+2. Set `GATE_PASSPHRASE`, `SESSION_SECRET`, and `ANTHROPIC_API_KEY`
+   env vars.
 3. Run `npx prisma migrate deploy && npx prisma db seed` against the
    production database once.
 
 ## Layout
 
 - `content/workbook.ts` — the question bank (Knowledge Doc §3), the
-  editorial source of truth. Section 7 ships deferred until the Library
-  exists (M2).
-- `prisma/schema.prisma` — full M1–M4 data model; only `User` and
-  `Answer` are live in M1.
+  editorial source of truth. Question 7.1 is answered by starring in
+  the Library.
+- `content/library.ts` — the 30-system Structure Library (Knowledge
+  Doc §1), verbatim.
+- `prompts/synthesis.txt` — the pairing-engine prompt (Knowledge Doc
+  §4). Loaded from file at run time; iterate on it without touching
+  code. The app appends a JSON output envelope for parsing.
+- `prisma/schema.prisma` — the full data model.
 - `lib/session.ts` — HMAC-signed cookie identity, two seats only.
+- `lib/synthesis.ts` — builds the prompt, calls the API, stores the
+  run with its full input snapshot for reproducibility.
 - `proxy.ts` — route gate (Next 16's rename of middleware).

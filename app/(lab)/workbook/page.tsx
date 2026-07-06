@@ -31,30 +31,6 @@ export default async function WorkbookOverview() {
           const p = mine.get(section.id);
           const pp = partner.get(section.id);
 
-          if (section.deferred) {
-            return (
-              <li
-                key={section.id}
-                className="border border-dashed border-hairline p-4 opacity-60"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-mono text-xs tracking-widest text-ink-soft uppercase">
-                    Sec. {section.index}
-                  </p>
-                  <span className="border border-signal px-1.5 py-0.5 font-mono text-[10px] tracking-widest text-signal uppercase">
-                    M2
-                  </span>
-                </div>
-                <h2 className="mt-1 font-display text-xl font-medium">
-                  {section.title}
-                </h2>
-                <p className="mt-2 text-xs leading-relaxed text-ink-soft">
-                  {section.deferredNote}
-                </p>
-              </li>
-            );
-          }
-
           return (
             <li key={section.id}>
               <Link

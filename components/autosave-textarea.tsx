@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { saveAnswer } from "@/app/workbook/actions";
+import { saveAnswer } from "@/app/(lab)/workbook/actions";
 
 type Status = "idle" | "dirty" | "saving" | "saved" | "error";
 

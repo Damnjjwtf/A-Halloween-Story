@@ -9,27 +9,26 @@ export type SectionProgress = {
 };
 
 /**
- * Per-section answered/total counts for one user. Deferred sections
- * report total 0. User-agnostic on purpose — M2 Compare calls this
- * for both users.
+ * Per-section answered/total counts for one user. Question 7.1 counts
+ * as answered once the user has starred 4+ Library systems.
+ * User-agnostic on purpose — Compare calls this for both users.
  */
 export async function computeProgress(
   userId: UserId,
 ): Promise<Map<string, SectionProgress>> {
-  const rows = await db.answer.findMany({
-    where: { userId, NOT: { text: "" } },
-    select: { questionId: true },
-  });
+  const [rows, starCount] = await Promise.all([
+    db.answer.findMany({
+      where: { userId, NOT: { text: "" } },
+      select: { questionId: true },
+    }),
+    db.star.count({ where: { userId } }),
+  ]);
   const answeredIds = new Set(rows.map((r) => r.questionId));
 
   const out = new Map<string, SectionProgress>();
   for (const section of SECTIONS) {
-    if (section.deferred) {
-      out.set(section.id, { sectionId: section.id, answered: 0, total: 0 });
-      continue;
-    }
     const answered = section.questions.filter((q) =>
-      answeredIds.has(q.id),
+      q.id === "7.1" ? starCount >= 4 : answeredIds.has(q.id),
     ).length;
     out.set(section.id, {
       sectionId: section.id,

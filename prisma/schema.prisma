@@ -48,6 +48,7 @@ model Run {
   createdAt     DateTime @default(now())
   inputSnapshot Json
   rawOutput     String
+  error         String   @default("") // non-empty when the run failed or parse failed
 
   candidates Candidate[]
 }
@@ -57,8 +58,10 @@ model Candidate {
   runId         String
   name          String
   engineSummary String
+  clockBorder   String   @default("") // how it load-bears the ritual clock + border
   beatMap       String
   failureMode   String
+  noveltyCheck  String   @default("") // nearest existing structure + real departure
   sourceAnswers String[]
 
   run   Run    @relation(fields: [runId], references: [id])
