@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── M1 ──────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id // "jj" | "stefan"
+  name      String
+  createdAt DateTime @default(now())
+
+  answers Answer[]
+  stars   Star[]
+  votes   Vote[]
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String // natural key into content/workbook.ts, e.g. "4.1"
+  text       String
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, questionId])
+}
+
+// ── M2 — Library starring ───────────────────────────────────────
+
+model Star {
+  userId   String
+  systemId Int // index number of the structure system (1–30)
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([userId, systemId])
+}
+
+// ── M3 — Lab synthesis runs ─────────────────────────────────────
+
+model Run {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  inputSnapshot Json
+  rawOutput     String
+  error         String   @default("") // non-empty when the run failed or parse failed
+
+  candidates Candidate[]
+}
+
+model Candidate {
+  id            String   @id @default(cuid())
+  runId         String
+  name          String
+  engineSummary String
+  clockBorder   String   @default("") // how it load-bears the ritual clock + border
+  beatMap       String
+  failureMode   String
+  noveltyCheck  String   @default("") // nearest existing structure + real departure
+  sourceAnswers String[]
+
+  run   Run    @relation(fields: [runId], references: [id])
+  votes Vote[]
+}
+
+model Vote {
+  userId      String
+  candidateId String
+  verdict     Verdict
+  note        String  @default("")
+
+  user      User      @relation(fields: [userId], references: [id])
+  candidate Candidate @relation(fields: [candidateId], references: [id])
+
+  @@id([userId, candidateId])
+}
+
+enum Verdict {
+  keep
+  kill
+  mutate
+}
