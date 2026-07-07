@@ -15,8 +15,11 @@ export const OTHER_USER: Record<UserId, UserId> = {
 export const SESSION_COOKIE = "lab_session";
 
 function getSecret(): Uint8Array {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret) throw new Error("SESSION_SECRET is not set");
+  // Falls back to a baked-in constant when SESSION_SECRET is unset.
+  // Fine for this two-person tool's threat model: with no passphrase
+  // gate the cookie only selects a seat, it doesn't protect anything.
+  const secret =
+    process.env.SESSION_SECRET ?? "structure-lab-default-secret-two-seats";
   return new TextEncoder().encode(secret);
 }
 

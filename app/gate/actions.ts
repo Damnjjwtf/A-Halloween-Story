@@ -17,11 +17,10 @@ export async function enterLab(
     return { error: "Pick a name." };
   }
 
+  // No GATE_PASSPHRASE configured = open door: just pick a seat.
+  // Set the env var (and redeploy) to lock the gate again.
   const expected = process.env.GATE_PASSPHRASE;
-  if (!expected) {
-    return { error: "Gate is not configured. Set GATE_PASSPHRASE." };
-  }
-  if (passphrase !== expected) {
+  if (expected && passphrase !== expected) {
     return { error: "Wrong passphrase." };
   }
 

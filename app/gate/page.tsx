@@ -1,5 +1,9 @@
 import { GateForm } from "@/components/gate-form";
 
+// Read GATE_PASSPHRASE at request time, not build time, so locking or
+// unlocking the gate is an env-var change + redeploy, no code edit.
+export const dynamic = "force-dynamic";
+
 export default function GatePage() {
   return (
     <main className="flex min-h-dvh items-center justify-center p-6">
@@ -34,7 +38,7 @@ export default function GatePage() {
             <em>A Halloween Story</em>. Two seats, period.
           </p>
         </header>
-        <GateForm />
+        <GateForm passphraseRequired={Boolean(process.env.GATE_PASSPHRASE)} />
       </div>
     </main>
   );
