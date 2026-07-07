@@ -8,7 +8,11 @@ const USERS = [
   { id: "stefan", name: "Stefan" },
 ] as const;
 
-export function GateForm() {
+export function GateForm({
+  passphraseRequired,
+}: {
+  passphraseRequired: boolean;
+}) {
   const [state, formAction, pending] = useActionState<GateState, FormData>(
     enterLab,
     { error: null },
@@ -45,23 +49,25 @@ export function GateForm() {
         </div>
       </fieldset>
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="passphrase"
-          className="font-mono text-xs tracking-widest text-ink-soft uppercase"
-        >
-          Passphrase
-        </label>
-        <input
-          id="passphrase"
-          name="passphrase"
-          type="password"
-          autoComplete="current-password"
-          required
-          className="border border-hairline bg-card px-4 py-3 font-mono text-sm placeholder:text-ink-faint"
-          placeholder="•••••••"
-        />
-      </div>
+      {passphraseRequired ? (
+        <div className="flex flex-col gap-2">
+          <label
+            htmlFor="passphrase"
+            className="font-mono text-xs tracking-widest text-ink-soft uppercase"
+          >
+            Passphrase
+          </label>
+          <input
+            id="passphrase"
+            name="passphrase"
+            type="password"
+            autoComplete="current-password"
+            required
+            className="border border-hairline bg-card px-4 py-3 font-mono text-sm placeholder:text-ink-faint"
+            placeholder="•••••••"
+          />
+        </div>
+      ) : null}
 
       {state.error ? (
         <p role="alert" className="font-mono text-xs text-ink">
@@ -71,7 +77,7 @@ export function GateForm() {
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !who}
         className="border border-ink bg-transparent px-4 py-3 font-mono text-sm tracking-wide transition-colors duration-150 hover:bg-ink hover:text-paper disabled:opacity-50"
       >
         {pending ? "Checking" : "Enter the Lab"}
