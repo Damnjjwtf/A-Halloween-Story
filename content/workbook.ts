@@ -8,15 +8,16 @@ export type Question = {
   id: string; // natural key, e.g. "4.1" — Answer.questionId references this
   prompt: string;
   helpText?: string;
+  /** When set, this question is answered by starring in the Library
+      (no textarea) — "structure" reads structure stars, "tone" reads
+      tone stars. e.g. 7.1 (structure), 10.3 (tone). */
+  starPrompt?: "structure" | "tone";
 };
 
 export type Section = {
-  id: string; // "1".."8" — used in the /workbook/[sectionId] route
+  id: string; // "1".."10" — used in the /workbook/[sectionId] route
   index: string; // display index, e.g. "01"
   title: string;
-  /** Section 7: question 7.1 is answered by starring in the Library,
-      not by a textarea. 7.2/7.3 stay free text. */
-  ingredients?: boolean;
   questions: Question[];
 };
 
@@ -160,12 +161,12 @@ export const SECTIONS: Section[] = [
     id: "7",
     index: "07",
     title: "Ingredients",
-    ingredients: true,
     questions: [
       {
         id: "7.1",
         prompt: "Star 4–8 systems from the Library.",
         helpText: "Answered by starring in the Library view, not here.",
+        starPrompt: "structure",
       },
       {
         id: "7.2",
@@ -197,17 +198,74 @@ export const SECTIONS: Section[] = [
       },
     ],
   },
+  {
+    id: "9",
+    index: "09",
+    title: "Tonal targets",
+    questions: [
+      {
+        id: "9.1",
+        prompt:
+          "Name three films whose TONE you envy for this project, and state the tonal move in one sentence each (the move, not the vibe).",
+      },
+      {
+        id: "9.2",
+        prompt:
+          "What tone would be the obvious choice for this premise — and are you refusing it or embracing it? (Answer honestly; refusing the obvious is not automatically the move.)",
+      },
+      {
+        id: "9.3",
+        prompt:
+          "What is this film never allowed to feel like, even for one scene? (Your tonal kill-rule. The synthesis engine treats this as hard constraint.)",
+        helpText: "Injected into the Lab as a hard constraint.",
+      },
+      {
+        id: "9.4",
+        prompt:
+          "The martial-law material and the kid material want different registers. Name the register each wants, then decide: braid, whiplash, gradient, or collision?",
+      },
+    ],
+  },
+  {
+    id: "10",
+    index: "10",
+    title: "Tone × structure interaction",
+    questions: [
+      {
+        id: "10.1",
+        prompt:
+          "Does tone follow space (city feels different from suburb), time (dusk feels different from midnight), or people (each kid carries a register)? Rank all three — your ranking weights the tone-logic parameter.",
+      },
+      {
+        id: "10.2",
+        prompt:
+          "Pick one moment-type where tone should CONTRADICT structure (e.g., the structural climax played in the quietest register). Why there?",
+      },
+      {
+        id: "10.3",
+        prompt: "Star 3–5 tone cards in the Library.",
+        helpText:
+          "Answered by starring TONE cards in the Library view, not here.",
+        starPrompt: "tone",
+      },
+      {
+        id: "10.4",
+        prompt:
+          "Force-pair one tone management system (T13–T20) with one structure system from a different family. What would the hybrid demand?",
+      },
+    ],
+  },
 ];
 
 export function getSection(id: string): Section | undefined {
   return SECTIONS.find((s) => s.id === id);
 }
 
-/** Question ids answerable by free text ("7.1" is answered by starring). */
+/** Question ids answerable by free text (star-prompt questions excluded). */
 export function activeQuestionIds(sectionId?: string): string[] {
   return SECTIONS.filter(
     (s) => sectionId === undefined || s.id === sectionId,
   ).flatMap((s) =>
-    s.questions.filter((q) => q.id !== "7.1").map((q) => q.id),
+    s.questions.filter((q) => !q.starPrompt).map((q) => q.id),
   );
 }

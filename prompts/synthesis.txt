@@ -14,31 +14,49 @@ INPUTS:
 <jj_answers>{{JJ_ANSWERS}}</jj_answers>
 <stefan_answers>{{STEFAN_ANSWERS}}</stefan_answers>
 <starred_systems>{{STARRED_SYSTEMS_WITH_CARDS}}</starred_systems>
+<starred_tone>{{STARRED_TONE_WITH_CARDS}}</starred_tone>
+<tone_constraints>{{TONE_CONSTRAINTS}}</tone_constraints>
 <mutation_notes>{{OPTIONAL_MUTATION_NOTES}}</mutation_notes>
+
+Tone-logic is a full parameter of the box, not decoration. Tone management systems
+(T13–T20) are engines — rules for how registers move; registers (T1–T12) are their raw
+material. Every candidate ships with its tonal engine attached; there is no separate
+Tone Lab. The 9.3 kill-rule in <tone_constraints> is a HARD CONSTRAINT alongside the
+fixed premise constraints.
 
 METHOD (follow in order):
 1. Extract the constraint set from the answers. Where JJ and Stefan diverge, treat the
    divergence as a design tension to resolve, not an error. Name each tension.
 2. Build a morphological box: parameters = time-logic, POV-logic, space-logic,
-   knowledge-logic, ritual-logic, unit-of-repetition. Populate values from the starred
-   systems plus the fixed constraints.
+   knowledge-logic, ritual-logic, unit-of-repetition, tone-logic. Populate values from the
+   starred systems plus the fixed constraints. Tone-logic values come from the starred
+   T-cards (management systems as engines, registers as material), weighted by the
+   Section 10.1 ranking (space / time / people).
 3. Generate candidate hybrids via bisociation: each candidate must combine systems from
    at least two different families, and each must resolve at least one named tension
    using a TRIZ-style contradiction resolution (state the contradiction and the resolution).
+   Each candidate's tonal engine must be integrated — the register movement must be keyed
+   to a structural feature (a station of the clock, a border crossing, a POV handoff).
 4. Discard any candidate that (a) ignores the ritual clock or the border, (b) is a known
-   existing structure with a costume on, or (c) breaks the users' stated legibility rule.
+   existing structure with a costume on, (c) breaks the users' stated legibility rule,
+   (d) violates either user's 9.3 tonal kill-rule, or (e) has a detachable tonal engine —
+   if the tonal engine could be swapped out without changing the beat-map, it isn't
+   integrated, it's paint.
 
 OUTPUT: exactly {{N}} candidates (default 4). For each:
 - NAME: two or three words, evocative, no puns unless earned.
 - ENGINE: one sentence. The mechanism, stated so a stranger could apply it.
+- TONAL ENGINE: one sentence — which management system (T-card) governs register movement,
+  keyed to which structural feature. Name the mechanism of interaction, not the mood.
 - CLOCK & BORDER: how it load-bears the ritual calendar and the city/suburb gradient.
 - BEAT-MAP SKETCH: 6-10 structural stations (structural, not plot).
 - PREDICTED FAILURE MODE: the specific way this structure dies in execution.
 - DERIVATION: which answers and starred systems produced it (cite by question ID and
-  system number).
-- NOVELTY CHECK: nearest existing structure, and the one dimension on which this
-  candidate genuinely departs from it. If you cannot name a real departure, say so
-  plainly instead of inflating.
+  system number, including tone cards, e.g. "JJ 4.1, Stefan 9.3; No. 23 × No. 29; T18 × No. 21").
+- NOVELTY CHECK: nearest existing structure AND nearest existing tone-management pairing,
+  and the one dimension on which this candidate genuinely departs. If you cannot name a
+  real departure, say so plainly instead of inflating.
 
-Be honest in NOVELTY CHECK. A candidate that is "Trick 'r Treat meets The Warriors" is a
-useful finding, not a failure — but label it as recombination, not invention.
+Be honest in NOVELTY CHECK. "The Warriors' traversal with Parasite's braiding" is a
+legitimate, labeled recombination finding, not a failure — label it as recombination, not
+invention.

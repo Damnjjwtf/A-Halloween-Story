@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getSection, SECTIONS } from "@/content/workbook";
 import { getSystem } from "@/content/library";
+import { getTone, isToneId } from "@/content/tone";
 import { getCurrentUser } from "@/lib/session";
 import { AutosaveTextarea } from "@/components/autosave-textarea";
 
@@ -18,6 +19,7 @@ export default async function SectionPage({
   const section = getSection(sectionId);
   if (!section) notFound();
 
+  const hasStarPrompt = section.questions.some((q) => q.starPrompt);
   const [answers, myStars] = await Promise.all([
     db.answer.findMany({
       where: {
@@ -25,15 +27,25 @@ export default async function SectionPage({
         questionId: { in: section.questions.map((q) => q.id) },
       },
     }),
-    section.ingredients
+    hasStarPrompt
       ? db.star.findMany({ where: { userId: user.id } })
       : Promise.resolve([]),
   ]);
   const byQuestion = new Map(answers.map((a) => [a.questionId, a.text]));
-  const starred = myStars
+
+  // Split starred ids into structure (1–30) and tone (101–120) labels.
+  const structureStars = myStars
+    .filter((s) => !isToneId(s.systemId))
     .map((s) => getSystem(s.systemId))
     .filter((s) => s !== undefined)
-    .sort((a, b) => a.id - b.id);
+    .sort((a, b) => a.id - b.id)
+    .map((s) => ({ label: `No. ${String(s.id).padStart(2, "0")}`, name: s.name }));
+  const toneStars = myStars
+    .filter((s) => isToneId(s.systemId))
+    .map((s) => getTone(s.systemId))
+    .filter((t) => t !== undefined)
+    .sort((a, b) => a.id - b.id)
+    .map((t) => ({ label: t.code, name: t.name }));
 
   const i = SECTIONS.findIndex((s) => s.id === section.id);
   const prev = SECTIONS[i - 1];
@@ -68,31 +80,43 @@ export default async function SectionPage({
             ) : (
               <div className="mb-3" />
             )}
-            {q.id === "7.1" ? (
-              <div className="border border-hairline bg-paper px-3 py-2.5">
-                {starred.length > 0 ? (
-                  <ul className="flex flex-wrap gap-1.5">
-                    {starred.map((s) => (
-                      <li
-                        key={s.id}
-                        className="border border-hairline px-2 py-1 font-mono text-[11px]"
+            {q.starPrompt ? (
+              (() => {
+                const stars =
+                  q.starPrompt === "tone" ? toneStars : structureStars;
+                const min = q.starPrompt === "tone" ? 3 : 4;
+                const libHref =
+                  q.starPrompt === "tone" ? "/library?tab=tone" : "/library";
+                return (
+                  <div className="border border-hairline bg-paper px-3 py-2.5">
+                    {stars.length > 0 ? (
+                      <ul className="flex flex-wrap gap-1.5">
+                        {stars.map((s) => (
+                          <li
+                            key={s.label}
+                            className="border border-hairline px-2 py-1 font-mono text-[11px]"
+                          >
+                            {s.label} {s.name}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="font-mono text-xs text-ink-faint">
+                        Nothing starred yet.
+                      </p>
+                    )}
+                    <p className="mt-2 font-mono text-[11px] tracking-wide text-ink-soft">
+                      {stars.length}/{min} minimum —{" "}
+                      <Link
+                        href={libHref}
+                        className="underline hover:text-ink"
                       >
-                        No. {String(s.id).padStart(2, "0")} {s.name}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="font-mono text-xs text-ink-faint">
-                    Nothing starred yet.
-                  </p>
-                )}
-                <p className="mt-2 font-mono text-[11px] tracking-wide text-ink-soft">
-                  {starred.length}/4 minimum —{" "}
-                  <Link href="/library" className="underline hover:text-ink">
-                    open the Library
-                  </Link>
-                </p>
-              </div>
+                        open the Library
+                      </Link>
+                    </p>
+                  </div>
+                );
+              })()
             ) : (
               <AutosaveTextarea
                 questionId={q.id}

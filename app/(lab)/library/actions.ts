@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { getSystem } from "@/content/library";
+import { getTone } from "@/content/tone";
 
 export async function toggleStar(systemId: number): Promise<void> {
   const user = await requireUser();
-  if (!getSystem(systemId)) return;
+  // Structure ids (1–30) and tone ids (101–120) share the stars table.
+  if (!getSystem(systemId) && !getTone(systemId)) return;
 
   const key = { userId: user.id, systemId };
   const existing = await db.star.findUnique({
