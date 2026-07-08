@@ -4,6 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { db } from "@/lib/db";
 import { SECTIONS } from "@/content/workbook";
 import { FAMILY_LABEL, getSystem } from "@/content/library";
+import { getTone, isToneId, TONE_TYPE_LABEL } from "@/content/tone";
 import { USERS, type UserId } from "@/lib/session";
 
 // PRD §7: model pinned by the PRD, overridable without a deploy.
@@ -15,15 +16,20 @@ const CANDIDATE_COUNT = 4;
 const OUTPUT_ENVELOPE = `
 FORMAT: Respond with a single JSON object and nothing else — no markdown fences,
 no preamble. Shape:
-{"candidates": [{"name": "...", "engine": "...", "clockBorder": "...",
-"beatMap": "...", "failureMode": "...", "derivation": "...", "noveltyCheck": "..."}]}
+{"candidates": [{"name": "...", "engine": "...", "tonalEngine": "...",
+"clockBorder": "...", "beatMap": "...", "failureMode": "...", "derivation": "...",
+"noveltyCheck": "..."}]}
+"tonalEngine" is one sentence: which tone management system (T-card) governs
+register movement, keyed to which structural feature. Name the mechanism of
+interaction, not the mood.
 "beatMap" is one string with numbered stations separated by newlines.
-"derivation" cites question IDs and system numbers, e.g. "JJ 4.1, Stefan 2.2; No. 23 × No. 29".
+"derivation" cites question IDs and system numbers, e.g. "JJ 4.1, Stefan 2.2; No. 23 × No. 29; T14 × No. 21".
 `;
 
 export type ParsedCandidate = {
   name: string;
   engine: string;
+  tonalEngine: string;
   clockBorder: string;
   beatMap: string;
   failureMode: string;
@@ -48,16 +54,26 @@ function answersBlock(
   return lines.join("\n\n") || "(no answers yet)";
 }
 
-function starsBlock(stars: { userId: string; systemId: number }[]): string {
-  const bySystem = new Map<number, string[]>();
+function whoBySystem(
+  stars: { userId: string; systemId: number }[],
+): Map<number, string[]> {
+  const by = new Map<number, string[]>();
   for (const s of stars) {
-    const list = bySystem.get(s.systemId) ?? [];
+    const list = by.get(s.systemId) ?? [];
     list.push(USERS[s.userId as UserId].name);
-    bySystem.set(s.systemId, list);
+    by.set(s.systemId, list);
   }
+  return by;
+}
+
+function structureStarsBlock(
+  stars: { userId: string; systemId: number }[],
+): string {
+  const by = whoBySystem(stars);
   const lines: string[] = [];
-  for (const [systemId, who] of [...bySystem.entries()].sort((a, b) => a[0] - b[0])) {
-    const sys = getSystem(systemId);
+  for (const [id, who] of [...by.entries()].sort((a, b) => a[0] - b[0])) {
+    if (isToneId(id)) continue;
+    const sys = getSystem(id);
     if (!sys) continue;
     lines.push(
       `No. ${sys.id} — ${sys.name} [${FAMILY_LABEL[sys.family]}] (starred by ${who.join(" + ")})\n` +
@@ -66,6 +82,43 @@ function starsBlock(stars: { userId: string; systemId: number }[]): string {
     );
   }
   return lines.join("\n\n") || "(nothing starred yet)";
+}
+
+function toneStarsBlock(
+  stars: { userId: string; systemId: number }[],
+): string {
+  const by = whoBySystem(stars);
+  const lines: string[] = [];
+  for (const [id, who] of [...by.entries()].sort((a, b) => a[0] - b[0])) {
+    if (!isToneId(id)) continue;
+    const t = getTone(id);
+    if (!t) continue;
+    lines.push(
+      `${t.code} — ${t.name} [${TONE_TYPE_LABEL[t.type]}] (starred by ${who.join(" + ")})\n` +
+        `Mechanism: ${t.mechanism}\nEngineers: ${t.engineers}\n` +
+        `Example: ${t.example}\nFails when: ${t.failsWhen}`,
+    );
+  }
+  return lines.join("\n\n") || "(no tone cards starred yet)";
+}
+
+// Section 9–10 answers, with the 9.3 kill-rule flagged as a hard constraint.
+function toneConstraintsBlock(
+  answers: { userId: string; questionId: string; text: string }[],
+): string {
+  const lines: string[] = [];
+  for (const uid of ["jj", "stefan"] as UserId[]) {
+    const mine = new Map(
+      answers.filter((a) => a.userId === uid).map((a) => [a.questionId, a.text]),
+    );
+    for (const q of ["9.1", "9.2", "9.3", "9.4", "10.1", "10.2", "10.4"]) {
+      const text = mine.get(q);
+      if (!text) continue;
+      const flag = q === "9.3" ? " [HARD CONSTRAINT — tonal kill-rule]" : "";
+      lines.push(`Q${q}${flag}\n${USERS[uid].name}: ${text}`);
+    }
+  }
+  return lines.join("\n\n") || "(no tone answers yet)";
 }
 
 export async function buildSynthesisInput(): Promise<{
@@ -98,7 +151,9 @@ export async function buildSynthesisInput(): Promise<{
 
   const jj = answersBlock(answers, "jj");
   const stefan = answersBlock(answers, "stefan");
-  const starred = starsBlock(stars);
+  const starred = structureStarsBlock(stars);
+  const toneStarred = toneStarsBlock(stars);
+  const toneConstraints = toneConstraintsBlock(answers);
   const mutations = mutationNotes.join("\n") || "(none)";
 
   const prompt =
@@ -106,6 +161,8 @@ export async function buildSynthesisInput(): Promise<{
       .replaceAll("{{JJ_ANSWERS}}", jj)
       .replaceAll("{{STEFAN_ANSWERS}}", stefan)
       .replaceAll("{{STARRED_SYSTEMS_WITH_CARDS}}", starred)
+      .replaceAll("{{STARRED_TONE_WITH_CARDS}}", toneStarred)
+      .replaceAll("{{TONE_CONSTRAINTS}}", toneConstraints)
       .replaceAll("{{OPTIONAL_MUTATION_NOTES}}", mutations)
       .replaceAll("{{N}}", String(CANDIDATE_COUNT)) + OUTPUT_ENVELOPE;
 
@@ -116,6 +173,8 @@ export async function buildSynthesisInput(): Promise<{
       jjAnswers: jj,
       stefanAnswers: stefan,
       starredSystems: starred,
+      starredTone: toneStarred,
+      toneConstraints,
       mutationNotes: mutations,
       template,
     },
@@ -137,6 +196,7 @@ export function parseCandidates(raw: string): ParsedCandidate[] {
   return parsed.candidates.map((c, i) => ({
     name: c.name?.trim() || `Untitled ${i + 1}`,
     engine: c.engine?.trim() ?? "",
+    tonalEngine: c.tonalEngine?.trim() ?? "",
     clockBorder: c.clockBorder?.trim() ?? "",
     beatMap: c.beatMap?.trim() ?? "",
     failureMode: c.failureMode?.trim() ?? "",
@@ -177,6 +237,7 @@ export async function runSynthesis(): Promise<{ runId: string; error: string }> 
         create: candidates.map((c) => ({
           name: c.name,
           engineSummary: c.engine,
+          tonalEngine: c.tonalEngine,
           clockBorder: c.clockBorder,
           beatMap: c.beatMap,
           failureMode: c.failureMode,

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { SECTIONS } from "@/content/workbook";
 import { FAMILY_LABEL, getSystem } from "@/content/library";
+import { getTone, isToneId, TONE_TYPE_LABEL } from "@/content/tone";
 import { USERS, type UserId } from "@/lib/session";
 
 /** Full session dump as markdown — the thing that gets pasted back into
@@ -35,8 +36,10 @@ export async function buildExport(): Promise<string> {
     out.push(`### Sec. ${section.index} — ${section.title}\n`);
     for (const q of section.questions) {
       out.push(`**Q${q.id}** ${q.prompt}\n`);
-      if (q.id === "7.1") {
-        out.push("_Answered via Library stars — see Starred ingredients._\n");
+      if (q.starPrompt) {
+        out.push(
+          `_Answered via Library stars — see Starred ${q.starPrompt === "tone" ? "tone" : "ingredients"}._\n`,
+        );
         continue;
       }
       const a = jj.get(q.id);
@@ -48,20 +51,35 @@ export async function buildExport(): Promise<string> {
     }
   }
 
-  out.push("## Starred ingredients\n");
   const starIds = [...new Set(stars.map((s) => s.systemId))].sort(
     (a, b) => a - b,
   );
-  if (starIds.length === 0) out.push("_Nothing starred._\n");
-  for (const id of starIds) {
-    const sys = getSystem(id);
-    if (!sys) continue;
-    const who = stars
+  const whoFor = (id: number) =>
+    stars
       .filter((s) => s.systemId === id)
       .map((s) => USERS[s.userId as UserId].name)
       .join(" + ");
+
+  out.push("## Starred ingredients (structure)\n");
+  const structureIds = starIds.filter((id) => !isToneId(id));
+  if (structureIds.length === 0) out.push("_Nothing starred._\n");
+  for (const id of structureIds) {
+    const sys = getSystem(id);
+    if (!sys) continue;
     out.push(
-      `- **No. ${String(sys.id).padStart(2, "0")} ${sys.name}** [${FAMILY_LABEL[sys.family]}] — starred by ${who}. ${sys.mechanism}`,
+      `- **No. ${String(sys.id).padStart(2, "0")} ${sys.name}** [${FAMILY_LABEL[sys.family]}] — starred by ${whoFor(id)}. ${sys.mechanism}`,
+    );
+  }
+  out.push("");
+
+  out.push("## Starred tone\n");
+  const toneIds = starIds.filter((id) => isToneId(id));
+  if (toneIds.length === 0) out.push("_Nothing starred._\n");
+  for (const id of toneIds) {
+    const t = getTone(id);
+    if (!t) continue;
+    out.push(
+      `- **${t.code} ${t.name}** [${TONE_TYPE_LABEL[t.type]}] — starred by ${whoFor(id)}. ${t.mechanism}`,
     );
   }
   out.push("");
@@ -78,6 +96,7 @@ export async function buildExport(): Promise<string> {
     for (const c of run.candidates) {
       out.push(`#### ${c.name}\n`);
       out.push(`- **Engine:** ${c.engineSummary}`);
+      if (c.tonalEngine) out.push(`- **Tonal engine:** ${c.tonalEngine}`);
       if (c.clockBorder) out.push(`- **Clock & border:** ${c.clockBorder}`);
       out.push(`- **Beat-map:**\n\n\`\`\`\n${c.beatMap}\n\`\`\`\n`);
       out.push(`- **Predicted failure mode:** ${c.failureMode}`);

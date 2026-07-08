@@ -58,6 +58,7 @@ model Candidate {
   runId         String
   name          String
   engineSummary String
+  tonalEngine   String   @default("") // which T-card governs register movement, keyed to a structural feature
   clockBorder   String   @default("") // how it load-bears the ritual clock + border
   beatMap       String
   failureMode   String

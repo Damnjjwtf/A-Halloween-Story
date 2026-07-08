@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { SECTIONS } from "@/content/workbook";
 import { getSystem } from "@/content/library";
+import { getTone, isToneId } from "@/content/tone";
 import { getCurrentUser, OTHER_USER, USERS } from "@/lib/session";
+
+type Chip = { id: number; label: string; name: string };
 
 export default async function ComparePage() {
   const user = await getCurrentUser();
@@ -24,16 +27,23 @@ export default async function ComparePage() {
   const mine = byUser(user.id);
   const theirs = byUser(partnerId);
 
-  const starsFor = (userId: string) =>
+  // Star chips for one user, filtered to structure (1–30) or tone (101–120).
+  const chipsFor = (userId: string, kind: "structure" | "tone"): Chip[] =>
     stars
       .filter((s) => s.userId === userId)
-      .map((s) => getSystem(s.systemId))
-      .filter((s) => s !== undefined)
+      .filter((s) => (kind === "tone" ? isToneId(s.systemId) : !isToneId(s.systemId)))
+      .map((s): Chip | null => {
+        if (kind === "tone") {
+          const t = getTone(s.systemId);
+          return t ? { id: t.id, label: t.code, name: t.name } : null;
+        }
+        const sys = getSystem(s.systemId);
+        return sys
+          ? { id: sys.id, label: `No. ${String(sys.id).padStart(2, "0")}`, name: sys.name }
+          : null;
+      })
+      .filter((c): c is Chip => c !== null)
       .sort((a, b) => a.id - b.id);
-  const myStars = starsFor(user.id);
-  const theirStars = starsFor(partnerId);
-  const myStarIds = new Set(myStars.map((s) => s.id));
-  const theirStarIds = new Set(theirStars.map((s) => s.id));
 
   const me = USERS[user.id].name;
   const them = USERS[partnerId].name;
@@ -63,16 +73,21 @@ export default async function ComparePage() {
 
             <div className="flex flex-col gap-5">
               {section.questions.map((q) => {
-                if (q.id === "7.1") {
+                if (q.starPrompt) {
+                  const kind = q.starPrompt;
+                  const myChips = chipsFor(user.id, kind);
+                  const theirChips = chipsFor(partnerId, kind);
+                  const myIds = new Set(myChips.map((c) => c.id));
+                  const theirIds = new Set(theirChips.map((c) => c.id));
                   return (
                     <div key={q.id}>
                       <p className="mb-2 font-mono text-xs tracking-widest text-ink-soft uppercase">
-                        Q7.1 — starred systems
+                        Q{q.id} — starred {kind === "tone" ? "tone" : "systems"}
                       </p>
                       <div className="grid gap-px border border-hairline bg-hairline sm:grid-cols-2">
                         {[
-                          { label: me, list: myStars, other: theirStarIds },
-                          { label: them, list: theirStars, other: myStarIds },
+                          { label: me, list: myChips, other: theirIds },
+                          { label: them, list: theirChips, other: myIds },
                         ].map(({ label, list, other }) => (
                           <div key={label} className="bg-card p-3">
                             <p className="mb-2 font-mono text-[11px] tracking-widest text-ink-faint uppercase">
@@ -80,11 +95,11 @@ export default async function ComparePage() {
                             </p>
                             {list.length ? (
                               <ul className="flex flex-wrap gap-1.5">
-                                {list.map((s) => {
-                                  const solo = !other.has(s.id);
+                                {list.map((c) => {
+                                  const solo = !other.has(c.id);
                                   return (
                                     <li
-                                      key={s.id}
+                                      key={c.id}
                                       className={`border px-2 py-1 font-mono text-[11px] ${
                                         solo
                                           ? "border-signal text-signal"
@@ -94,8 +109,7 @@ export default async function ComparePage() {
                                         solo ? `Only ${label}` : "Both starred"
                                       }
                                     >
-                                      No. {String(s.id).padStart(2, "0")}{" "}
-                                      {s.name}
+                                      {c.label} {c.name}
                                     </li>
                                   );
                                 })}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { FAMILY_LABEL, getSystem } from "@/content/library";
+import { getTone, isToneId, TONE_TYPE_LABEL } from "@/content/tone";
 import { getCurrentUser, OTHER_USER, USERS } from "@/lib/session";
 import { RunLabButton } from "@/components/run-lab-button";
 import { VotePanel } from "@/components/vote-panel";
@@ -28,13 +29,29 @@ export default async function LabPage({
 
   const tray = [...new Set(stars.map((s) => s.systemId))]
     .sort((a, b) => a - b)
-    .map((id) => ({
-      system: getSystem(id),
-      who: stars
+    .map((id) => {
+      const tone = isToneId(id) ? getTone(id) : undefined;
+      const sys = tone ? undefined : getSystem(id);
+      const who = stars
         .filter((s) => s.systemId === id)
-        .map((s) => USERS[s.userId as "jj" | "stefan"].name),
-    }))
-    .filter((t) => t.system !== undefined);
+        .map((s) => USERS[s.userId as "jj" | "stefan"].name);
+      if (tone) {
+        return {
+          id,
+          label: `${tone.code} ${tone.name}`,
+          title: `${TONE_TYPE_LABEL[tone.type]} — starred by ${who.join(" + ")}`,
+        };
+      }
+      if (sys) {
+        return {
+          id,
+          label: `No. ${String(sys.id).padStart(2, "0")} ${sys.name}`,
+          title: `${FAMILY_LABEL[sys.family]} — starred by ${who.join(" + ")}`,
+        };
+      }
+      return null;
+    })
+    .filter((t) => t !== null);
 
   const apiConfigured = Boolean(process.env.ANTHROPIC_API_KEY);
 
@@ -55,13 +72,13 @@ export default async function LabPage({
         </h2>
         {tray.length ? (
           <ul className="flex flex-wrap gap-1.5">
-            {tray.map(({ system, who }) => (
+            {tray.map((item) => (
               <li
-                key={system!.id}
+                key={item.id}
                 className="border border-hairline px-2 py-1 font-mono text-[11px]"
-                title={`${FAMILY_LABEL[system!.family]} — starred by ${who.join(" + ")}`}
+                title={item.title}
               >
-                No. {String(system!.id).padStart(2, "0")} {system!.name}
+                {item.label}
               </li>
             ))}
           </ul>
@@ -156,6 +173,14 @@ export default async function LabPage({
                           </dt>
                           <dd>{c.engineSummary}</dd>
                         </div>
+                        {c.tonalEngine ? (
+                          <div>
+                            <dt className="tracking-widest text-ink-faint uppercase">
+                              Tonal engine
+                            </dt>
+                            <dd>{c.tonalEngine}</dd>
+                          </div>
+                        ) : null}
                         {c.clockBorder ? (
                           <div>
                             <dt className="tracking-widest text-ink-faint uppercase">
