@@ -8,6 +8,11 @@ export async function proxy(request: NextRequest) {
     request.cookies.get(SESSION_COOKIE)?.value,
   );
 
+  // Public read-only candidate share pages bypass the gate entirely.
+  if (pathname.startsWith("/c/")) {
+    return NextResponse.next();
+  }
+
   if (pathname === "/gate") {
     if (userId) {
       return NextResponse.redirect(new URL("/workbook", request.url));
