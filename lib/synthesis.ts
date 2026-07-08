@@ -206,6 +206,21 @@ export function parseCandidates(raw: string): ParsedCandidate[] {
 }
 
 export async function runSynthesis(): Promise<{ runId: string; error: string }> {
+  // Defense in depth: the Run button is disabled with an empty tray, but a
+  // synthesis with nothing starred has no ingredients — skip the API call and
+  // record a clear reason rather than burning a request on an empty box.
+  const starCount = await db.star.count();
+  if (starCount === 0) {
+    const run = await db.run.create({
+      data: {
+        inputSnapshot: { note: "no starred systems" },
+        rawOutput: "",
+        error: "Nothing starred — star systems in the Library before running.",
+      },
+    });
+    return { runId: run.id, error: run.error };
+  }
+
   const { prompt, snapshot } = await buildSynthesisInput();
 
   const client = new Anthropic(); // reads ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL
