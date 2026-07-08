@@ -25,6 +25,10 @@ All four milestones are built:
   next run, full run history preserved.
 - **M4 — Export**: one-click markdown dump of answers, stars, runs,
   votes. Copy or download.
+- **Share**: each candidate has a **Share** button that copies a public,
+  read-only link (`/c/<id>`) showing just that one structure as a clean
+  specimen card — no login, no votes, no workbench. For sending a single
+  synthesized structure to a collaborator or a portfolio.
 
 ## Stack
 

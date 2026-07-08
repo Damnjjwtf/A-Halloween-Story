@@ -6,6 +6,7 @@ import { getTone, isToneId, TONE_TYPE_LABEL } from "@/content/tone";
 import { getCurrentUser, OTHER_USER, USERS } from "@/lib/session";
 import { RunLabButton } from "@/components/run-lab-button";
 import { VotePanel } from "@/components/vote-panel";
+import { ShareButton } from "@/components/share-button";
 
 export default async function LabPage({
   searchParams,
@@ -159,10 +160,13 @@ export default async function LabPage({
                       }
                     >
                       <div className="border-b border-hairline px-4 py-2.5">
-                        <p className="font-mono text-[11px] tracking-widest text-ink-soft uppercase">
-                          Candidate {String(i + 1).padStart(2, "0")}
-                        </p>
-                        <h3 className="font-display text-xl font-semibold tracking-tight">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-mono text-[11px] tracking-widest text-ink-soft uppercase">
+                            Candidate {String(i + 1).padStart(2, "0")}
+                          </p>
+                          <ShareButton candidateId={c.id} />
+                        </div>
+                        <h3 className="mt-1 font-display text-xl font-semibold tracking-tight">
                           {c.name}
                         </h3>
                       </div>
