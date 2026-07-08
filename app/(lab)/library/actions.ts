@@ -15,10 +15,19 @@ export async function toggleStar(systemId: number): Promise<void> {
   const existing = await db.star.findUnique({
     where: { userId_systemId: key },
   });
-  if (existing) {
-    await db.star.delete({ where: { userId_systemId: key } });
-  } else {
-    await db.star.create({ data: key });
+  try {
+    if (existing) {
+      await db.star.delete({ where: { userId_systemId: key } });
+    } else {
+      await db.star.create({ data: key });
+    }
+  } catch (e) {
+    // Rapid double-clicks can race two toggles on the same (userId,
+    // systemId) primary key: a duplicate create (P2002) or a delete of an
+    // already-deleted row (P2025). Both mean the desired end state was
+    // reached by the other call — safe to ignore. Rethrow anything else.
+    const code = (e as { code?: string })?.code;
+    if (code !== "P2002" && code !== "P2025") throw e;
   }
   revalidatePath("/library");
   revalidatePath("/workbook");

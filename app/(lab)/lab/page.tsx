@@ -8,6 +8,11 @@ import { RunLabButton } from "@/components/run-lab-button";
 import { VotePanel } from "@/components/vote-panel";
 import { ShareButton } from "@/components/share-button";
 
+// "Run the Lab" is a live model call in a Server Action invoked from this
+// route; give it headroom past the platform's short default so a slow
+// synthesis isn't killed mid-flight. Vercel clamps this to the plan max.
+export const maxDuration = 300;
+
 export default async function LabPage({
   searchParams,
 }: {

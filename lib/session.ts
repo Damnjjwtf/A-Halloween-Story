@@ -15,11 +15,17 @@ export const OTHER_USER: Record<UserId, UserId> = {
 export const SESSION_COOKIE = "lab_session";
 
 function getSecret(): Uint8Array {
-  // Falls back to a baked-in constant when SESSION_SECRET is unset.
-  // Fine for this two-person tool's threat model: with no passphrase
-  // gate the cookie only selects a seat, it doesn't protect anything.
+  // Preference order for the cookie-signing key:
+  //   1. SESSION_SECRET — the intended, explicit secret.
+  //   2. GATE_PASSPHRASE — so a *locked* gate (passphrase set) still has a
+  //      non-public signing key: outsiders can't forge a cookie without it.
+  //   3. A baked-in constant — only reached when the gate is fully open
+  //      (no passphrase), where the cookie merely selects a seat and
+  //      protects nothing, so a known key is acceptable.
   const secret =
-    process.env.SESSION_SECRET ?? "structure-lab-default-secret-two-seats";
+    process.env.SESSION_SECRET ||
+    process.env.GATE_PASSPHRASE ||
+    "structure-lab-default-secret-two-seats";
   return new TextEncoder().encode(secret);
 }
 

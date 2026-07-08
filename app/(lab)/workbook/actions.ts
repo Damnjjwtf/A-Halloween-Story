@@ -16,10 +16,14 @@ export async function saveAnswer(
     return { ok: false, savedAt: null };
   }
 
+  // Bound the stored answer — generous for prose, a ceiling against a
+  // runaway paste (types are erased at the action boundary).
+  const bounded = text.slice(0, 20000);
+
   const row = await db.answer.upsert({
     where: { userId_questionId: { userId: user.id, questionId } },
-    update: { text },
-    create: { userId: user.id, questionId, text },
+    update: { text: bounded },
+    create: { userId: user.id, questionId, text: bounded },
   });
 
   return { ok: true, savedAt: row.updatedAt.toISOString() };

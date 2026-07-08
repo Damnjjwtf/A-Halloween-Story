@@ -13,14 +13,22 @@ export async function runTheLab(): Promise<void> {
   redirect(`/lab?dealt=${runId}`);
 }
 
+const VERDICTS = ["keep", "kill", "mutate"] as const;
+
 export async function castVote(
   candidateId: string,
   verdict: "keep" | "kill" | "mutate",
   note: string,
 ): Promise<void> {
   const user = await requireUser();
+  // Types are erased at runtime — validate the enum and bound the note
+  // before they reach the database.
+  if (!VERDICTS.includes(verdict)) return;
+  const trimmedNote = note.slice(0, 2000);
+
   const candidate = await db.candidate.findUnique({
     where: { id: candidateId },
+    select: { id: true },
   });
   if (!candidate) return;
 
@@ -28,8 +36,8 @@ export async function castVote(
     where: {
       userId_candidateId: { userId: user.id, candidateId },
     },
-    update: { verdict, note },
-    create: { userId: user.id, candidateId, verdict, note },
+    update: { verdict, note: trimmedNote },
+    create: { userId: user.id, candidateId, verdict, note: trimmedNote },
   });
   revalidatePath("/lab");
 }
