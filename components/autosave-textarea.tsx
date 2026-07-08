@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { saveAnswer } from "@/app/(lab)/workbook/actions";
+import { useDictation } from "@/lib/use-dictation";
 
 type Status = "idle" | "dirty" | "saving" | "saved" | "error";
 
@@ -26,6 +27,7 @@ export function AutosaveTextarea({
   const inflight = useRef<Promise<void>>(Promise.resolve());
   const lastSaved = useRef(initialText);
   const current = useRef(initialText);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const flush = useCallback(() => {
     if (timer.current) {
@@ -50,12 +52,34 @@ export function AutosaveTextarea({
     });
   }, [questionId]);
 
-  const onChange = (text: string) => {
-    current.current = text;
-    setStatus("dirty");
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(flush, 900);
-  };
+  const registerChange = useCallback(
+    (text: string) => {
+      current.current = text;
+      setStatus("dirty");
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(flush, 900);
+    },
+    [flush],
+  );
+
+  const onChange = (text: string) => registerChange(text);
+
+  // Dictation appends finalized speech to the textarea, then saves like typing.
+  const appendSpeech = useCallback(
+    (chunk: string) => {
+      const el = textareaRef.current;
+      if (!el) return;
+      const base = el.value;
+      const sep = base.length === 0 || /\s$/.test(base) ? "" : " ";
+      el.value = base + sep + chunk.trim();
+      registerChange(el.value);
+    },
+    [registerChange],
+  );
+
+  const { supported, listening, toggle } = useDictation(appendSpeech);
+
+  const onChangeEvent = (text: string) => onChange(text);
 
   // Flush on unmount / tab hide so a quick navigation doesn't drop text.
   useEffect(() => {
@@ -70,20 +94,39 @@ export function AutosaveTextarea({
   return (
     <div className="flex flex-col gap-1.5">
       <textarea
+        ref={textareaRef}
         defaultValue={initialText}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChangeEvent(e.target.value)}
         onBlur={flush}
         rows={5}
         className="w-full resize-y border border-hairline bg-paper px-3 py-2.5 font-mono text-sm leading-relaxed placeholder:text-ink-faint"
         placeholder="—"
         aria-label={`Answer to question ${questionId}`}
       />
-      <p
-        aria-live="polite"
-        className="h-4 text-right font-mono text-[11px] tracking-widest text-ink-faint uppercase"
-      >
-        {STATUS_LABEL[status]}
-      </p>
+      <div className="flex h-4 items-center justify-between">
+        {supported ? (
+          <button
+            type="button"
+            onClick={toggle}
+            aria-pressed={listening}
+            className={`border px-2 py-0.5 font-mono text-[11px] tracking-widest uppercase transition-colors duration-150 ${
+              listening
+                ? "border-ink bg-ink text-paper"
+                : "border-hairline text-ink-soft hover:border-ink hover:text-ink"
+            }`}
+          >
+            {listening ? "Listening — stop" : "Speak"}
+          </button>
+        ) : (
+          <span />
+        )}
+        <p
+          aria-live="polite"
+          className="text-right font-mono text-[11px] tracking-widest text-ink-faint uppercase"
+        >
+          {STATUS_LABEL[status]}
+        </p>
+      </div>
     </div>
   );
 }
