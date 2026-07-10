@@ -16,9 +16,20 @@ export async function generateMetadata({
   const { id } = await params;
   const c = await getCandidate(id);
   if (!c) return { title: "Structure Lab" };
+  const title = `${c.name} — Structure Lab`;
   return {
-    title: `${c.name} — Structure Lab`,
+    title,
     description: c.engineSummary,
+    openGraph: {
+      title,
+      description: c.engineSummary,
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: c.engineSummary,
+    },
   };
 }
 
@@ -92,9 +103,12 @@ export default async function SharedCandidate({
         </dl>
 
         <footer className="mt-10 flex items-baseline justify-between border-t border-hairline pt-4">
-          <p className="font-mono text-[11px] tracking-widest text-ink-faint uppercase">
-            A Halloween Story — structural invention
-          </p>
+          <a
+            href="/about"
+            className="font-mono text-[11px] tracking-widest text-ink-faint uppercase underline-offset-2 hover:text-ink hover:underline"
+          >
+            A Halloween Story — how it works
+          </a>
           <p className="font-mono text-[11px] tracking-widest text-ink-faint uppercase">
             Read-only
           </p>

@@ -23,10 +23,32 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
 });
 
+// Resolve relative OG image URLs against the deployed origin so link
+// previews unfurl correctly. Falls back to the Vercel-provided URL, then
+// localhost for dev.
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
+  "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Structure Lab",
   description:
     "A two-person structural invention workbook for A Halloween Story.",
+  openGraph: {
+    title: "Structure Lab",
+    description:
+      "A two-person structural invention workbook for A Halloween Story.",
+    siteName: "Structure Lab",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Structure Lab",
+    description:
+      "A two-person structural invention workbook for A Halloween Story.",
+  },
 };
 
 export default function RootLayout({

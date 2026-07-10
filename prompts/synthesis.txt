@@ -17,12 +17,19 @@ INPUTS:
 <starred_tone>{{STARRED_TONE_WITH_CARDS}}</starred_tone>
 <tone_constraints>{{TONE_CONSTRAINTS}}</tone_constraints>
 <mutation_notes>{{OPTIONAL_MUTATION_NOTES}}</mutation_notes>
+<curveball>{{OBLIQUE_STRATEGY}}</curveball>
 
 Tone-logic is a full parameter of the box, not decoration. Tone management systems
 (T13–T20) are engines — rules for how registers move; registers (T1–T12) are their raw
 material. Every candidate ships with its tonal engine attached; there is no separate
 Tone Lab. The 9.3 kill-rule in <tone_constraints> is a HARD CONSTRAINT alongside the
 fixed premise constraints.
+
+If <curveball> is non-empty, it is a dealt Oblique strategy: treat it as a HARD
+CONSTRAINT that EVERY candidate must obey, on equal footing with the fixed premise
+constraints. It is a structural provocation, not a theme — apply it to the shape of the
+structure, and name in each DERIVATION how that candidate honours it. If <curveball> is
+empty, ignore this paragraph.
 
 METHOD (follow in order):
 1. Extract the constraint set from the answers. Where JJ and Stefan diverge, treat the

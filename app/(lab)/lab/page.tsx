@@ -7,6 +7,7 @@ import { getCurrentUser, OTHER_USER, USERS } from "@/lib/session";
 import { RunLabButton } from "@/components/run-lab-button";
 import { VotePanel } from "@/components/vote-panel";
 import { ShareButton } from "@/components/share-button";
+import { CandidateComments } from "@/components/candidate-comments";
 
 // "Run the Lab" is a live model call in a Server Action invoked from this
 // route; give it headroom past the platform's short default so a slow
@@ -28,7 +29,12 @@ export default async function LabPage({
     db.run.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        candidates: { include: { votes: true } },
+        candidates: {
+          include: {
+            votes: true,
+            comments: { orderBy: { createdAt: "asc" } },
+          },
+        },
       },
     }),
   ]);
@@ -97,7 +103,7 @@ export default async function LabPage({
             before running.
           </p>
         )}
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-col gap-3">
           <RunLabButton disabled={tray.length === 0 || !apiConfigured} />
           {!apiConfigured ? (
             <p className="font-mono text-xs text-ink-soft">
@@ -106,7 +112,8 @@ export default async function LabPage({
           ) : (
             <p className="font-mono text-xs text-ink-faint">
               Sends both workbooks + the tray to the pairing engine. Mutation
-              notes from the latest run ride along.
+              notes from the latest run ride along. A curveball deals one random
+              constraint every candidate must obey.
             </p>
           )}
         </div>
@@ -130,6 +137,13 @@ export default async function LabPage({
                   {run.candidates.length} candidates
                 </span>
               </div>
+
+              {run.curveball ? (
+                <p className="mb-3 border-l-2 border-signal pl-3 font-mono text-[11px] leading-relaxed text-ink-soft">
+                  <span className="text-signal">Curveball — </span>
+                  {run.curveball}
+                </p>
+              ) : null}
 
               {run.error ? (
                 <div className="border border-hairline bg-card p-4">
@@ -236,6 +250,19 @@ export default async function LabPage({
                         partnerName={USERS[partnerId].name}
                         partnerVerdict={theirs?.verdict ?? null}
                         partnerNote={theirs?.note ?? ""}
+                      />
+                      <CandidateComments
+                        candidateId={c.id}
+                        myName={user.name}
+                        comments={c.comments.map((cm) => ({
+                          id: cm.id,
+                          authorName:
+                            USERS[cm.userId as "jj" | "stefan"]?.name ??
+                            cm.userId,
+                          body: cm.body,
+                          createdAt: cm.createdAt.toISOString(),
+                          mine: cm.userId === user.id,
+                        }))}
                       />
                     </article>
                   );

@@ -12,7 +12,14 @@ export async function buildExport(): Promise<string> {
     db.star.findMany(),
     db.run.findMany({
       orderBy: { createdAt: "asc" },
-      include: { candidates: { include: { votes: true } } },
+      include: {
+        candidates: {
+          include: {
+            votes: true,
+            comments: { orderBy: { createdAt: "asc" } },
+          },
+        },
+      },
     }),
   ]);
 
@@ -90,6 +97,9 @@ export async function buildExport(): Promise<string> {
     out.push(
       `### Run ${String(i + 1).padStart(2, "0")} — ${run.createdAt.toISOString()}\n`,
     );
+    if (run.curveball) {
+      out.push(`_Curveball: ${run.curveball}_\n`);
+    }
     if (run.error) {
       out.push(`_Run failed: ${run.error}_\n`);
     }
@@ -106,6 +116,11 @@ export async function buildExport(): Promise<string> {
       for (const v of c.votes) {
         out.push(
           `- **${USERS[v.userId as UserId].name} verdict:** ${v.verdict}${v.note ? ` — ${v.note}` : ""}`,
+        );
+      }
+      for (const cm of c.comments) {
+        out.push(
+          `- **${USERS[cm.userId as UserId].name} (${cm.createdAt.toISOString().slice(0, 16).replace("T", " ")}):** ${cm.body.replaceAll("\n", " ")}`,
         );
       }
       out.push("");

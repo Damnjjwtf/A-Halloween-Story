@@ -121,7 +121,7 @@ function toneConstraintsBlock(
   return lines.join("\n\n") || "(no tone answers yet)";
 }
 
-export async function buildSynthesisInput(): Promise<{
+export async function buildSynthesisInput(curveball = ""): Promise<{
   prompt: string;
   snapshot: Record<string, string>;
 }> {
@@ -164,6 +164,7 @@ export async function buildSynthesisInput(): Promise<{
       .replaceAll("{{STARRED_TONE_WITH_CARDS}}", toneStarred)
       .replaceAll("{{TONE_CONSTRAINTS}}", toneConstraints)
       .replaceAll("{{OPTIONAL_MUTATION_NOTES}}", mutations)
+      .replaceAll("{{OBLIQUE_STRATEGY}}", curveball || "(none)")
       .replaceAll("{{N}}", String(CANDIDATE_COUNT)) + OUTPUT_ENVELOPE;
 
   return {
@@ -176,6 +177,7 @@ export async function buildSynthesisInput(): Promise<{
       starredTone: toneStarred,
       toneConstraints,
       mutationNotes: mutations,
+      curveball: curveball || "(none)",
       template,
     },
   };
@@ -205,7 +207,12 @@ export function parseCandidates(raw: string): ParsedCandidate[] {
   }));
 }
 
-export async function runSynthesis(): Promise<{ runId: string; error: string }> {
+export async function runSynthesis(
+  curveball = "",
+): Promise<{ runId: string; error: string }> {
+  // Bound a dealt curveball — it rides into the prompt as a hard constraint.
+  const curve = curveball.slice(0, 400).trim();
+
   // Defense in depth: the Run button is disabled with an empty tray, but a
   // synthesis with nothing starred has no ingredients — skip the API call and
   // record a clear reason rather than burning a request on an empty box.
@@ -216,12 +223,13 @@ export async function runSynthesis(): Promise<{ runId: string; error: string }> 
         inputSnapshot: { note: "no starred systems" },
         rawOutput: "",
         error: "Nothing starred — star systems in the Library before running.",
+        curveball: curve,
       },
     });
     return { runId: run.id, error: run.error };
   }
 
-  const { prompt, snapshot } = await buildSynthesisInput();
+  const { prompt, snapshot } = await buildSynthesisInput(curve);
 
   const client = new Anthropic(); // reads ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL
 
@@ -248,6 +256,7 @@ export async function runSynthesis(): Promise<{ runId: string; error: string }> 
       inputSnapshot: snapshot,
       rawOutput: raw,
       error,
+      curveball: curve,
       candidates: {
         create: candidates.map((c) => ({
           name: c.name,

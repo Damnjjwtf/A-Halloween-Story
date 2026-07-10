@@ -8,8 +8,15 @@ export async function proxy(request: NextRequest) {
     request.cookies.get(SESSION_COOKIE)?.value,
   );
 
-  // Public read-only candidate share pages bypass the gate entirely.
-  if (pathname.startsWith("/c/")) {
+  // Public surfaces bypass the gate entirely: read-only candidate share
+  // pages, the "how it works" page, and the generated OG/preview images
+  // (so link unfurls work before anyone is signed in).
+  const isPublic =
+    pathname.startsWith("/c/") ||
+    pathname === "/about" ||
+    pathname.includes("opengraph-image") ||
+    pathname.includes("twitter-image");
+  if (isPublic) {
     return NextResponse.next();
   }
 
