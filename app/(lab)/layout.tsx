@@ -16,7 +16,8 @@ export default async function LabShell({
       <header className="flex items-baseline justify-between pt-4 pb-3">
         <Link
           href="/workbook"
-          className="font-display text-lg font-semibold tracking-tight"
+          title="Back to Workbook — home"
+          className="font-display text-lg font-semibold tracking-tight underline decoration-hairline decoration-1 underline-offset-4 transition-colors duration-150 hover:decoration-ink"
         >
           Structure Lab
         </Link>
