@@ -13,9 +13,10 @@ model User {
   name      String
   createdAt DateTime @default(now())
 
-  answers Answer[]
-  stars   Star[]
-  votes   Vote[]
+  answers  Answer[]
+  stars    Star[]
+  votes    Vote[]
+  comments Comment[]
 }
 
 model Answer {
@@ -49,6 +50,7 @@ model Run {
   inputSnapshot Json
   rawOutput     String
   error         String   @default("") // non-empty when the run failed or parse failed
+  curveball     String   @default("") // Oblique-strategy constraint injected into this run, if any
 
   candidates Candidate[]
 }
@@ -65,8 +67,23 @@ model Candidate {
   noveltyCheck  String   @default("") // nearest existing structure + real departure
   sourceAnswers String[]
 
-  run   Run    @relation(fields: [runId], references: [id])
-  votes Vote[]
+  run      Run       @relation(fields: [runId], references: [id])
+  votes    Vote[]
+  comments Comment[]
+}
+
+// Threaded discussion under a candidate — back-and-forth beyond the vote+note.
+model Comment {
+  id          String   @id @default(cuid())
+  candidateId String
+  userId      String
+  body        String
+  createdAt   DateTime @default(now())
+
+  candidate Candidate @relation(fields: [candidateId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([candidateId, createdAt])
 }
 
 model Vote {

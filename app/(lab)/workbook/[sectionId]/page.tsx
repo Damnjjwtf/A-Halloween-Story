@@ -105,15 +105,19 @@ export default async function SectionPage({
                         Nothing starred yet.
                       </p>
                     )}
-                    <p className="mt-2 font-mono text-[11px] tracking-wide text-ink-soft">
-                      {stars.length}/{min} minimum —{" "}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
                       <Link
                         href={libHref}
-                        className="underline hover:text-ink"
+                        className="inline-flex min-h-11 items-center border border-ink px-4 py-2 font-mono text-xs tracking-wide transition-colors duration-150 hover:bg-ink hover:text-paper"
                       >
-                        open the Library
+                        {q.starPrompt === "tone"
+                          ? "Open the Tone Library →"
+                          : "Open the Library →"}
                       </Link>
-                    </p>
+                      <span className="font-mono text-[11px] tracking-wide text-ink-soft">
+                        {stars.length}/{min} minimum
+                      </span>
+                    </div>
                   </div>
                 );
               })()

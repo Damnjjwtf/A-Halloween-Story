@@ -6,9 +6,9 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { runSynthesis } from "@/lib/synthesis";
 
-export async function runTheLab(): Promise<void> {
+export async function runTheLab(curveball = ""): Promise<void> {
   await requireUser();
-  const { runId } = await runSynthesis();
+  const { runId } = await runSynthesis(curveball);
   revalidatePath("/lab");
   redirect(`/lab?dealt=${runId}`);
 }
@@ -40,4 +40,25 @@ export async function castVote(
     create: { userId: user.id, candidateId, verdict, note: trimmedNote },
   });
   revalidatePath("/lab");
+}
+
+export async function addComment(
+  candidateId: string,
+  body: string,
+): Promise<{ ok: boolean }> {
+  const user = await requireUser();
+  const trimmed = body.trim().slice(0, 4000);
+  if (!trimmed) return { ok: false };
+
+  const candidate = await db.candidate.findUnique({
+    where: { id: candidateId },
+    select: { id: true },
+  });
+  if (!candidate) return { ok: false };
+
+  await db.comment.create({
+    data: { candidateId, userId: user.id, body: trimmed },
+  });
+  revalidatePath("/lab");
+  return { ok: true };
 }
