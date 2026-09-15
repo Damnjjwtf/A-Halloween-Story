@@ -1,6 +1,7 @@
-// Structure Library — 30 systems, seeded verbatim from the Structure Lab
-// Knowledge Doc §1. Each card: mechanism (how it works) / engineers (the
-// audience state it manufactures) / example / failsWhen.
+// Structure Library — 34 systems, seeded verbatim from the Structure Lab
+// Knowledge Doc §1 (30) + Library Expansion v1 (31–34). Each card: mechanism
+// (how it works) / engineers (the audience state it manufactures) / example
+// / failsWhen.
 
 export type Family =
   | "LINEAR"
@@ -10,7 +11,8 @@ export type Family =
   | "SPATIAL"
   | "POV"
   | "MODULAR"
-  | "META";
+  | "META"
+  | "RECURSIVE";
 
 export const FAMILY_LABEL: Record<Family, string> = {
   LINEAR: "Linear",
@@ -21,16 +23,21 @@ export const FAMILY_LABEL: Record<Family, string> = {
   POV: "POV / Epistemic",
   MODULAR: "Modular / Participatory",
   META: "Meta",
+  RECURSIVE: "Recursive",
 };
 
 export type StructureSystem = {
-  id: number; // catalog index 1–30, referenced by Star.systemId
+  id: number; // catalog index 1–34, referenced by Star.systemId
   name: string;
   family: Family;
   mechanism: string;
   engineers: string;
   example: string;
   failsWhen: string;
+  /** Optional premise-specific guidance for the Lab (how this system bears
+      on THIS film's fixed constraints) — surfaced in the synthesis prompt
+      when the card is starred. */
+  labNote?: string;
 };
 
 export const SYSTEMS: StructureSystem[] = [
@@ -105,7 +112,8 @@ export const SYSTEMS: StructureSystem[] = [
     mechanism:
       "Introduction → development → TWIST/turn (non-conflict recontextualization) → reconciliation. Conflict is not the engine; recontextualization is.",
     engineers: "Quiet surprise, meaning-shift.",
-    example: "Much of Ozu; many Ghibli films; 4-panel manga.",
+    example:
+      "Much of Ozu; many Ghibli films; 4-panel manga. Perfect Days, Paterson (stronger slice-of-life cases).",
     failsWhen:
       "Western audiences trained on conflict read it as “nothing happens.”",
   },
@@ -149,7 +157,8 @@ export const SYSTEMS: StructureSystem[] = [
     family: "NONLINEAR",
     mechanism: "Story time = screen time; no ellipsis.",
     engineers: "Claustrophobic urgency; the clock is diegetic.",
-    example: "24, Victoria, Rope (simulated).",
+    example:
+      "24, Victoria, Rope (simulated). Cléo from 5 to 7 (cleaner feature case).",
     failsWhen: "Real time forces filler; downtime can't be cut.",
   },
   {
@@ -296,7 +305,7 @@ export const SYSTEMS: StructureSystem[] = [
     mechanism:
       "The same event retold through incompatible testimonies; truth is the negative space.",
     engineers: "Epistemic vertigo; the audience becomes the judge.",
-    example: "Rashomon, The Last Duel.",
+    example: "Rashomon, The Last Duel, Gone Girl (popular dueling-accounts case).",
     failsWhen:
       "One account is signaled as “the real one,” collapsing the machine.",
   },
@@ -371,6 +380,62 @@ export const SYSTEMS: StructureSystem[] = [
     example:
       "Adaptation, The Princess Bride's frame, Deadpool at its cheapest.",
     failsWhen: "Cleverness substitutes for stakes.",
+  },
+  {
+    id: 31,
+    name: "Diptych",
+    family: "MODULAR",
+    mechanism:
+      "Two distinct halves that form one whole — a hard structural break splits the film into panels that rhyme, invert, or reframe each other. Not two timelines braided (dual/braided timeline) and not two spaces intercut (parallel-space convergence); the halves are sequential and self-contained, and the SEAM is the meaning.",
+    engineers:
+      "The click of recognition when panel two recontextualizes panel one; a break that makes the audience re-read what they've seen.",
+    example:
+      "Psycho (the shower as hinge), Full Metal Jacket (boot camp / Vietnam), Mulholland Dr. (dream panel / waking panel).",
+    failsWhen:
+      "The two halves don't need each other — a strong half married to a weak one reads as two films stapled together.",
+    labNote:
+      "The canceled-city / permitted-suburb divide is a native diptych. The load-bearing question: what is the SEAM — the single hinge event that splits the film into its two panels — and does panel two make us re-read panel one?",
+  },
+  {
+    id: 32,
+    name: "Mosaic",
+    family: "ENSEMBLE",
+    mechanism:
+      "Multiple disconnected storylines bound by PLACE or THEME rather than by a shared causal event. Distinct from Hyperlink, where strangers are linked by one incident; here the tiles may never causally touch — coherence is the portrait of a place or idea they collectively assemble.",
+    engineers:
+      "Sociological/atmospheric wholeness; the city or theme as the real protagonist; cumulative rather than convergent meaning.",
+    example: "Nashville, Do the Right Thing, Slacker.",
+    failsWhen:
+      "The tiles are too even — no figure emerges from the ground; a collage of equally-weighted nothing.",
+    labNote:
+      "Keep three ensemble engines distinct in synthesis: Hyperlink = one event links strangers (convergence). Relay = attention hands off and never returns (linear traversal). Mosaic = tiles bound by place/theme, connection optional (accretion). Do not merge them.",
+  },
+  {
+    id: 33,
+    name: "Nested / Russian Doll",
+    family: "RECURSIVE",
+    mechanism:
+      "Stories contained inside stories, matryoshka-style — you enter one narrative, which opens into another, which opens into another; descent (and return) through frame layers is the structure. Distinct from Frame-break/metafiction, where the apparatus comments on itself; here the nesting is the architecture, not the joke.",
+    engineers:
+      "Vertigo of depth; the pleasure of descent and the question of whether we climb back out; each layer recolors the ones above it.",
+    example:
+      "The Saragossa Manuscript, Cloud Atlas (nesting + variation), The Grand Budapest Hotel (frames within frames within frames).",
+    failsWhen:
+      "The layers don't pay rent — depth for its own sake; the audience loses which doll they're in and stops caring about the outermost.",
+  },
+  {
+    id: 34,
+    name: "Möbius loop",
+    family: "RECURSIVE",
+    mechanism:
+      "A circular narrative that closes back onto its own beginning with no clean start or end — but the return is not identical; the traveler (or the audience's understanding) is changed by the loop. Distinct from Loop/iteration, which repeats a span multiple times, and from Reverse chronology, which runs linearly backward: the Möbius runs forward into its own origin.",
+    engineers:
+      "The uncanny closed causal loop; inevitability and entrapment; the compulsion to rewatch to find the join.",
+    example: "La Jetée, Timecrimes, Lost Highway.",
+    failsWhen:
+      "The loop is a shrug — closure without change; a circle the audience clocks as a gimmick rather than a trap that means something.",
+    labNote:
+      "The ritual clock invites a Möbius close — midnight folding back to dusk with the kids changed. Risk: a Möbius on the Halloween calendar can read as \"it was all a dream / it repeats forever\"; the departure must be earned, per this card's own failure mode.",
   },
 ];
 

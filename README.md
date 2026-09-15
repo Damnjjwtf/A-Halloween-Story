@@ -17,7 +17,7 @@ All four milestones are built:
 - **M1 — Skeleton**: Gate, Workbook with per-question autosave, seeded
   question bank, per-section progress.
 - **M2 — Two-player**: Compare view (divergence rendered in the one
-  signal color), Library of 30 catalogued systems with starring;
+  signal color), Library of 34 catalogued systems with starring;
   Section 7 answers via stars.
 - **M3 — The Lab**: synthesis runs against the Anthropic API (prompt
   template in `prompts/synthesis.txt` — edit it freely), candidate

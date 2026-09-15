@@ -85,7 +85,7 @@ export default async function LibraryPage({
         <p className="mb-1 font-mono text-xs tracking-widest text-ink-soft uppercase">
           {onTone
             ? "Tone Library — 20 catalogued systems"
-            : "Structure Library — 30 catalogued systems"}
+            : "Structure Library — 34 catalogued systems"}
         </p>
         <h1 className="font-display text-3xl font-semibold tracking-tight">
           Specimen board

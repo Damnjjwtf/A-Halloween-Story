@@ -58,6 +58,21 @@ body {
   animation: deal 420ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
+/* Indeterminate progress bar while a synthesis run is in flight — we don't
+   know real completion, so this signals "alive," not "N% done." */
+@keyframes progress-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(500%);
+  }
+}
+
+.animate-progress-sweep {
+  animation: progress-sweep 1.3s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
