@@ -2,7 +2,7 @@
 // Tone Addendum §B. Registers (T1–T12) are palettes — what a scene feels
 // like. Management systems (T13–T20) are engines — rules for how registers
 // move, mix, and break. Both live in the same `stars` table; to avoid
-// colliding with structure ids (1–30) tone cards use numeric ids 101–120
+// colliding with structure ids (1–34) tone cards use numeric ids 101–120
 // (displayed as T1–T20). Card anatomy matches the structure library.
 
 export type ToneType = "register" | "management";

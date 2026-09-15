@@ -27,7 +27,7 @@ export default async function ComparePage() {
   const mine = byUser(user.id);
   const theirs = byUser(partnerId);
 
-  // Star chips for one user, filtered to structure (1–30) or tone (101–120).
+  // Star chips for one user, filtered to structure (1–34) or tone (101–120).
   const chipsFor = (userId: string, kind: "structure" | "tone"): Chip[] =>
     stars
       .filter((s) => s.userId === userId)

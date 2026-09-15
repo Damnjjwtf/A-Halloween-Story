@@ -77,7 +77,7 @@ User        — id ("jj"|"stefan"), name
 Answer      — (userId, questionId) unique; questionId is a string natural key into
               content/workbook.ts (e.g. "4.1"), not a DB-seeded question table
 Star        — (userId, systemId) composite PK; systemId indexes into content/library.ts
-              (1–30, structure systems) or content/tone.ts (101–120, tone cards)
+              (1–34, structure systems) or content/tone.ts (101–120, tone cards)
 Run         — one synthesis call; stores the full inputSnapshot (JSON), rawOutput,
               error (non-empty = failed/unparseable run), curveball (dealt Oblique
               strategy text, if any)
@@ -122,9 +122,12 @@ Rendering them is a button-sized (44px min tap target — see §8 bug history) l
 Library, plus a live count of what's starred so far.
 
 ### 4.2 Structure Library (`content/library.ts`)
-30 story-structure systems (ids 1–30), each with: mechanism, engineers (who's used it), a real
-example, and how it fails. Grouped into 8 families (Linear, Nonlinear/Temporal, Iterative,
-Ensemble/Social, Spatial, POV/Epistemic, Modular/Participatory, Meta).
+34 story-structure systems (ids 1–34; 1–30 from the Knowledge Doc, 31–34 from "Library Expansion
+v1"), each with: mechanism, engineers (who's used it), a real example, and how it fails. Some
+cards also carry an optional `labNote` — premise-specific guidance surfaced in the synthesis
+prompt when that card is starred (e.g. "the ritual clock invites a Möbius close, but the
+departure must be earned"). Grouped into 9 families (Linear, Nonlinear/Temporal, Iterative,
+Ensemble/Social, Spatial, POV/Epistemic, Modular/Participatory, Meta, Recursive).
 
 ### 4.3 Tone Library (`content/tone.ts`)
 20 tone cards (ids 101–120, displayed as T1–T20), added later as the "Tone Addendum." Split into
@@ -150,7 +153,7 @@ blur/tab-hide, and shows a live save-status label. Includes a **"Speak" voice-di
 commits finalized speech chunks, gracefully hidden where unsupported (Safari/Chrome only).
 
 ### 5.2 Library (`/library`) + starring
-Specimen-card grid of all 30 structure systems / 20 tone cards, filterable by family/type, with
+Specimen-card grid of all 34 structure systems / 20 tone cards, filterable by family/type, with
 a tab switch between Structure and Tone (`?tab=tone`). Star toggling is a Server Action with
 race-safe upsert (handles concurrent P2002/P2025 from both users starring near-simultaneously).
 
@@ -174,6 +177,13 @@ The core feature. `lib/synthesis.ts`:
 4. Stores the full `inputSnapshot` on the `Run` row so every run is reproducible/auditable.
 5. Defense in depth: if nothing is starred, the run short-circuits with a clear stored error
    instead of burning an API call.
+
+**Structural stacking:** the prompt permits (but doesn't require) one candidate per run to run
+two systems as a macro/engine pair rather than a flat combination — e.g. a diptych at the macro
+scale with a Möbius-loop engine inside one panel. The discard rule that normally kills "a known
+structure with a costume on" explicitly exempts a stacked candidate, provided its noveltyCheck
+names both layers and states why they need each other. Reserve this for the strongest candidate,
+not every candidate — it sharpens one, it muddies four.
 
 **Curveball:** a "Deal a curveball" button next to "Run the Lab" that picks one random card from
 `content/oblique.ts` and injects it into that run as a **hard constraint every candidate must

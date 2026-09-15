@@ -33,7 +33,7 @@ export default async function SectionPage({
   ]);
   const byQuestion = new Map(answers.map((a) => [a.questionId, a.text]));
 
-  // Split starred ids into structure (1–30) and tone (101–120) labels.
+  // Split starred ids into structure (1–34) and tone (101–120) labels.
   const structureStars = myStars
     .filter((s) => !isToneId(s.systemId))
     .map((s) => getSystem(s.systemId))

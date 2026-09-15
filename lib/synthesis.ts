@@ -78,7 +78,8 @@ function structureStarsBlock(
     lines.push(
       `No. ${sys.id} — ${sys.name} [${FAMILY_LABEL[sys.family]}] (starred by ${who.join(" + ")})\n` +
         `Mechanism: ${sys.mechanism}\nEngineers: ${sys.engineers}\n` +
-        `Example: ${sys.example}\nFails when: ${sys.failsWhen}`,
+        `Example: ${sys.example}\nFails when: ${sys.failsWhen}` +
+        (sys.labNote ? `\nLab note: ${sys.labNote}` : ""),
     );
   }
   return lines.join("\n\n") || "(nothing starred yet)";

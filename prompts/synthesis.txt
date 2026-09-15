@@ -44,11 +44,19 @@ METHOD (follow in order):
    using a TRIZ-style contradiction resolution (state the contradiction and the resolution).
    Each candidate's tonal engine must be integrated — the register movement must be keyed
    to a structural feature (a station of the clock, a border crossing, a POV handoff).
+   Optional escalation — structural stacking: systems are not mutually exclusive; a
+   candidate may run one system as the macro-structure with a second system as the engine
+   operating inside it (e.g., a diptych at the macro scale with a Möbius-loop engine inside
+   one panel, or a mosaic whose tiles are each real-time). Stacking is bisociation applied
+   to your strongest candidate, not to the raw ingredients — reserve it for at most one
+   candidate per run; using it everywhere muddies rather than sharpens.
 4. Discard any candidate that (a) ignores the ritual clock or the border, (b) is a known
-   existing structure with a costume on, (c) breaks the users' stated legibility rule,
-   (d) violates either user's 9.3 tonal kill-rule, or (e) has a detachable tonal engine —
-   if the tonal engine could be swapped out without changing the beat-map, it isn't
-   integrated, it's paint.
+   existing structure with a costume on — UNLESS it is a deliberately STACKED combination
+   (see step 3), which is legitimate only if the NOVELTY CHECK names both layers and states
+   why they need each other, (c) breaks the users' stated legibility rule, (d) violates
+   either user's 9.3 tonal kill-rule, or (e) has a detachable tonal engine — if the tonal
+   engine could be swapped out without changing the beat-map, it isn't integrated, it's
+   paint.
 
 OUTPUT: exactly {{N}} candidates (default 4). For each:
 - NAME: two or three words, evocative, no puns unless earned.
